@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Map</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+        }
+        header {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #ffcccb;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        header p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #555;
+        }
+        #map {
+            width: 80%;
+            height: 500px;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <header>
+        <h1>독립 지도</h1>
+        <p>지도를 클릭해 메시지와 태극기를 남겨주세요!</p>
+    </header>
+
+    <div id="map"></div>
+
+    <script>
+        // 지도 초기화
+        const map = L.map('map').setView([37.5665, 126.9780], 12); // 서울 좌표
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+        }).addTo(map);
+
+        // 촛불 아이콘 정의
+        const candleIcon = L.icon({
+            iconUrl: 'https://i.postimg.cc/Pr8hdQZg/2024-12-13-16-28-18.png', // 아이콘 URL
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+        });
+
+        // 로컬 스토리지에서 촛불 불러오기
+        const savedCandles = JSON.parse(localStorage.getItem('candles')) || [];
+        savedCandles.forEach(({ lat, lng, message }) => {
+            const marker = L.marker([lat, lng], { icon: candleIcon }).addTo(map);
+            marker.bindPopup(`<strong>메시지: </strong><br>${message}`);
+        });
+
+        // 지도 클릭 이벤트
+        map.on('click', (e) => {
+            const { lat, lng } = e.latlng;
+
+            // 메시지 입력 받기
+            const message = prompt('메시지를 남겨주세요: ');
+            if (!message) {
+                alert('메시지 남기기에 실패했습니다. ');
+                return;
+            }
+
+            // 지도에 촛불 추가
+            const marker = L.marker([lat, lng], { icon: candleIcon }).addTo(map);
+            marker.bindPopup(`<strong>메시지:</strong><br>${message}`).openPopup();
+
+            // 로컬 스토리지에 저장
+            savedCandles.push({ lat, lng, message });
+            localStorage.setItem('candles', JSON.stringify(savedCandles));
+        });
+    </script>
+</body>
+</html>
